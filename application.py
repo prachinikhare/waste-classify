@@ -11,9 +11,9 @@ jsglue = JSGlue() # create a object of JsGlue
 jsglue.init_app(app) # and assign the app as a init app to the instance of JsGlue
 
 util.load_artifacts()
-#home page
+#about page
 @app.route("/")
-def home():
+def about():
     return render_template("about.html")
 
 #classify waste
@@ -28,6 +28,8 @@ def WASTE_CLASSIFY():
     predicted_value, details, video1, video2 = util.WASTE__CLASSIFY(image_path)
     os.remove(image_path)
     return jsonify(predicted_value=predicted_value, details=details, video1=video1, video2=video2)
+  else:
+    return render_template("classify.html")
 
 # here is route of 404 means page not found error
 @app.errorhandler(404)
