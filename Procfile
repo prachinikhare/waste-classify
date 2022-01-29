@@ -1,1 +1,1 @@
-web: gunicorn waste-classify:app
+web: gunicorn waste-classify.wsgi
