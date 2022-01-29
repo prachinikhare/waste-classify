@@ -17,7 +17,7 @@ def about():
     return render_template("about.html")
 
 #classify waste
-@app.route("/WASTE_CLASSIFY", methods = ["POST"])
+@app.route("/WASTE_CLASSIFY", methods=['GET', 'POST'])  
 def WASTE_CLASSIFY():
     image_data = request.files["file"]
     #save the image to upload
