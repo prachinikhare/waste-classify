@@ -2,9 +2,11 @@
 from flask import Flask, escape, request, render_template
 import pickle
 import numpy as np
+from keras.models import load_model
+from keras.preprocessing import image
 
 app = Flask(__name__)
-model = pickle.load(open('model.pkl', 'rb'))
+model = load_model('WASTE_CLASSIFY.h5')
 
 #about page
 @app.route("/")
