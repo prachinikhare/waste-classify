@@ -1,60 +1,39 @@
- # save this as app.py
-from flask import Flask, flash, request, redirect, url_for, render_template
-import numpy as np
-from keras.models import load_model
-from keras.preprocessing import image
-import urllib.request
+ from flask import Flask, request, render_template, redirect, jsonify
+from flask_jsglue import JSGlue # this is use for url_for() working inside javascript which is help us to navigate the url
+import util
 import os
 from werkzeug.utils import secure_filename
 
-app = Flask(__name__)
-model = load_model('WASTE_CLASSIFY.h5')
-UPLOAD_FOLDER = 'static/uploads/'
- 
-app.secret_key = "secret key"
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
- 
-ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg', 'gif'])
- 
-def allowed_file(filename):
-    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+application = Flask(__name__)
 
-#about page
-@app.route("/")
-def about():
-    return render_template("about.html")
+# JSGlue is use for url_for() working inside javascript which is help us to navigate the url
+jsglue = JSGlue() # create a object of JsGlue
+jsglue.init_app(application) # and assign the app as a init app to the instance of JsGlue
+
+util.load_artifacts()
+#home page
+@application.route("/")
+def home():
+    return render_template("classify.html")
 
 #classify waste
-@app.route('/', methods=['POST'])
-def upload_image():
-    if 'file' not in request.files:
-        flash('No file part')
-        return redirect(request.url)
-    file = request.files['file']
-    if file.filename == '':
-        flash('No image selected for uploading')
-        return redirect(request.url)
-    if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-        #print('upload_image filename: ' + filename)
-        flash('Image successfully uploaded and displayed below')
-        return render_template('index.html', filename=filename)
-    else:
-        flash('Allowed image types are - png, jpg, jpeg, gif')
-        return redirect(request.url)
- 
-@app.route('/display/<filename>')
-def display_image(filename):
-    #print('display_image filename: ' + filename)
-    return redirect(url_for('static', filename='uploads/' + filename), code=301)
+@application.route("/classifywaste", methods = ["POST"])
+def classifywaste():
+    image_data = request.files["file"]
+    #save the image to upload
+    basepath = os.path.dirname(__file__)
+    image_path = os.path.join(basepath, "uploads", secure_filename(image_data.filename))
+    image_data.save(image_path)
+
+    predicted_value, details, video1, video2 = util.classify_waste(image_path)
+    os.remove(image_path)
+    return jsonify(predicted_value=predicted_value, details=details, video1=video1, video2=video2)
 
 # here is route of 404 means page not found error
-@app.errorhandler(404)
+@application.errorhandler(404)
 def page_not_found(e):
     # here i created my own 404 page which will be redirect when 404 error occured in this web app
     return render_template("404.html"), 404
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    application.run()
