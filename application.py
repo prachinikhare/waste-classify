@@ -1,16 +1,11 @@
-from flask import Flask, request, render_template, redirect, jsonify
-from flask_jsglue import JSGlue # this is use for url_for() working inside javascript which is help us to navigate the url
-import util
-import os
-from werkzeug.utils import secure_filename
+ # save this as app.py
+from flask import Flask, escape, request, render_template
+import pickle
+import numpy as np
 
 app = Flask(__name__)
+model = pickle.load(open('model.pkl', 'rb'))
 
-# JSGlue is use for url_for() working inside javascript which is help us to navigate the url
-jsglue = JSGlue() # create a object of JsGlue
-jsglue.init_app(app) # and assign the app as a init app to the instance of JsGlue
-
-util.load_artifacts()
 #about page
 @app.route("/")
 def about():
@@ -38,4 +33,4 @@ def page_not_found(e):
     return render_template("404.html"), 404
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True)
